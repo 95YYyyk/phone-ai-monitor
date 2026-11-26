@@ -1,4 +1,4 @@
-# 桌面副屏 · Desk Side Display（本地增强版）
+# 手机副屏 AI 监控 · Desk Side Display（本地增强版）
 
 [简体中文](README.md) | [English](README.en.md)
 

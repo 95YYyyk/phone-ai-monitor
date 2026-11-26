@@ -1,4 +1,4 @@
-# Desk Side Display (Local Enhanced Edition)
+# Phone AI Monitor · Desk Side Display (Local Enhanced Edition)
 
 [简体中文](README.md) | **English**
 
