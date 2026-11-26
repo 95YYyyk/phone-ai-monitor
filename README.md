@@ -1,5 +1,7 @@
 # 桌面副屏 · Desk Side Display（本地增强版）
 
+[简体中文](README.md) | [English](README.en.md)
+
 > 基于 [kdwbll/desk-side-display](https://github.com/kdwbll/desk-side-display) 的非官方修改版。原项目采用 MIT 许可证；本仓库保留原始版权声明，并按 MIT 发布。
 >
 > 本修改版以 Windows 源码方式运行，**不提供预编译 EXE**。它把闲置 Android 手机变成电脑桌面的第二块小屏：显示歌词、硬件监控、AI 任务、时钟、相框和自定义卡片，也可以通过手机触发一些本机操作。
