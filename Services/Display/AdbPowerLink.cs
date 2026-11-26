@@ -103,11 +103,26 @@ sealed class AdbPowerLink(
             if (dimmed) await RestoreBrightnessAsync(CancellationToken.None);
             if (!preferences.WakeOnResume) return;
 
-            var wake = await usb.ShellAsync(CommandTimeout, CancellationToken.None, "input", "keyevent", "224");
-            var dismiss = await usb.ShellAsync(CommandTimeout, CancellationToken.None, "wm", "dismiss-keyguard");
-            if (!dismiss.Ok)
-                await usb.ShellAsync(CommandTimeout, CancellationToken.None, "input", "keyevent", "82");
-            SetStatus(action: wake.Ok || dismiss.Ok ? "唤醒：已亮屏并收起非安全锁屏" : "唤醒：手机屏幕命令失败");
+            for (var attempt = 0; attempt < 5; attempt++)
+            {
+                if (usb.Status != "ready")
+                {
+                    await Task.Delay(1000);
+                    continue;
+                }
+                var wake = await usb.ShellAsync(CommandTimeout, CancellationToken.None, "input", "keyevent", "224");
+                if (!wake.Ok)
+                {
+                    await Task.Delay(1000);
+                    continue;
+                }
+                var dismiss = await usb.ShellAsync(CommandTimeout, CancellationToken.None, "wm", "dismiss-keyguard");
+                if (!dismiss.Ok)
+                    await usb.ShellAsync(CommandTimeout, CancellationToken.None, "input", "keyevent", "82");
+                SetStatus(action: "唤醒：已亮屏并收起非安全锁屏");
+                return;
+            }
+            SetStatus(action: "唤醒：手机屏幕命令失败");
         }
         catch (Exception error)
         {
