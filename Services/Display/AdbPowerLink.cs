@@ -202,11 +202,11 @@ sealed class AdbPowerLink(
         var original = await ReadIntAsync("screen_brightness", token);
         var mode = await ReadIntAsync("screen_brightness_mode", token);
         // Do not make an already-dark screen nearly black.
-        if (original is null or <= 16) return;
+        if (original is null or <= 16 || mode is null) return;
         var target = Math.Clamp((int)Math.Round(original.Value * preferences.DimPercent / 100d), 1, original.Value - 1);
         if (target >= original.Value) return;
 
-        settings.SaveState(new AdbPowerRuntimeState(true, original.Value, mode ?? 0, target));
+        settings.SaveState(new AdbPowerRuntimeState(true, original.Value, mode.Value, target));
         dimmed = true;
         var manual = await usb.ShellAsync(CommandTimeout, token,
             "settings", "put", "system", "screen_brightness_mode", "0");
