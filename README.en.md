@@ -8,6 +8,8 @@
 
 ![An old phone on a desk stand showing hardware monitoring and AI task cards](docs/screenshots/demo-device.jpg)
 
+# For humans
+
 ## What this project is for
 
 Many people have an idle Android phone, but no room on the desk for a second monitor. This project turns the phone into a small screen that starts with your PC and connects over USB or your local network. No phone app is required, and no data is uploaded to the cloud.
@@ -63,11 +65,13 @@ The Windows control panel lets you change display mode, page order, widget posit
 | Old-phone support | JS/CSS fallbacks for Android 9, Via 7.3.3, WebView 80, and similar older engines. |
 | USB / LAN | USB uses ADB forwarding; the LAN display uses port 8767. |
 
-## Deployment (best handled by an AI)
+## For AI
+
+### Deployment (best handled by an AI)
 
 We recommend handing the project folder to an AI. Ask it to follow the second half of the [detailed setup guide (Chinese)](使用说明.md) to check the environment, build, start the service, and connect the phone. You only need to confirm UAC prompts, USB debugging authorization on the phone, and player sign-in. The environment and commands below are kept as a reference for the AI.
 
-### Requirements
+#### Requirements
 
 - Windows 10/11 x64
 - [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
@@ -75,7 +79,7 @@ We recommend handing the project folder to an AI. Ask it to follow the second ha
 - A USB data cable (USB mode) or the phone and PC on the same Wi-Fi (LAN mode)
 - Optional: Android Platform-Tools (`adb.exe` is required for USB mode)
 
-### Build and start (AI runs these)
+#### Build and start (AI runs these)
 
 From the project root, run `一键启动.cmd`. The script checks whether the service is already running; if so it opens the control panel, otherwise it builds Release and starts the service with `dotnet`.
 
@@ -88,14 +92,14 @@ dotnet bin\Release\net9.0-windows10.0.19041.0\DeskSideDisplay.dll --open-control
 
 The Windows control panel is at `http://127.0.0.1:8766/` after startup.
 
-### USB connection (AI runs it; the phone owner approves)
+#### USB connection (AI runs it; the phone owner approves)
 
 1. Enable USB debugging in the phone's developer options, connect a data cable, and allow this computer in the phone prompt.
 2. The program or AI runs `adb reverse tcp:8765 tcp:8765`; then open `http://127.0.0.1:8765/` in the phone browser.
 3. Turn the phone landscape and tap the screen to enter full screen.
 4. If `adb.exe` is missing, extract [Android Platform-Tools](https://developer.android.com/tools/releases/platform-tools) into `.tools/platform-tools/`, or use the download prompt in the control panel.
 
-### LAN connection (AI runs it)
+#### LAN connection (AI runs it)
 
 Connect the phone and PC to the same Wi-Fi, then open the "LAN direct" address shown in the control panel sidebar. It is usually:
 
@@ -105,7 +109,7 @@ http://<PC-LAN-IP>:8767/
 
 No USB cable is needed. The LAN page has **no access token**, so use it only on a trusted home or office network. Do not forward port 8767 to the internet. If Windows Firewall blocks it, run `Enable-Lan-Firewall.ps1` (one UAC prompt), or allow inbound TCP 8767 for `dotnet.exe`.
 
-## Ports and data locations
+### Ports and data locations
 
 | Port | Purpose |
 | --- | --- |
@@ -115,18 +119,18 @@ No USB cable is needed. The LAN page has **no access token**, so use it only on 
 
 When running from source, data is stored in `.data/` and Android tools in `.tools/`. Both folders, plus `bin/` and `obj/`, are ignored by `.gitignore`. To keep your settings when moving to another PC, copy `.data/` as well.
 
-## AI task monitoring
+### AI task monitoring
 
 The bottom task card is a key feature of this edition. All data comes from local files, is read-only, and never controls the Codex or Antigravity processes.
 
-### Codex
+#### Codex
 
 - Reads `task_started` / `task_complete` events from `%USERPROFILE%\.codex\sessions/**/rollout-*.jsonl`.
 - Reads titles from `%USERPROFILE%\.codex\session_index.jsonl` and shows a short title only.
 - On startup it reads the tail of the file first. If no task event is found there, it walks backward in 4 MB chunks to recover the latest task state, so long conversations do not disappear after a service restart.
 - Shows "Running" while active; completed tasks stay for about 2 minutes.
 
-### Antigravity
+#### Antigravity
 
 - Reads conversation titles, status, step count, and update time from `%USERPROFILE%\.gemini\antigravity\conversation_summaries.db`.
 - When subtask progress is needed, it opens `conversations/<conversation-id>.db` read-only and parses the checklist in `update_steps`.
@@ -135,7 +139,7 @@ The bottom task card is a key feature of this edition. All data comes from local
 
 > Antigravity's local SQLite schema is an internal format and may change after an upgrade. If reading fails, the task card keeps the last snapshot or degrades gracefully; the display service continues to run.
 
-## Privacy and security
+### Privacy and security
 
 - Everything runs locally by default; there is no telemetry, account login, or cloud sync.
 - The LAN page on `8767` has **no access token**. Anyone on the same network segment may see current task titles, hardware readings, or lyrics; use it only on a trusted network.
@@ -144,7 +148,7 @@ The bottom task card is a key feature of this edition. All data comes from local
 - Codex and Antigravity data collection is read-only. This project does not write their files or control their processes.
 - Local content such as `.data/`, `.tools/`, and `发布/` should not be committed to Git.
 
-## Compatibility and limitations
+### Compatibility and limitations
 
 > **Compatibility note**: This project has been tested on Android 9, Via 7.3.3, and WebView 80, but **it is not guaranteed to work on every phone or browser**. Screen aspect ratios, browser engines, and background policies vary. If you hit another bug, you can modify the code with an AI, or contact me at **yykmyykm@163.com**.
 
@@ -155,7 +159,7 @@ The bottom task card is a key feature of this edition. All data comes from local
 - Antigravity task progress depends on its internal database and may need parser updates after an app upgrade.
 - This edition does not provide a prebuilt EXE. For a standalone package, follow the upstream project's release approach and verify the license and runtime yourself.
 
-## Project structure
+### Project structure
 
 ```text
 .
@@ -181,7 +185,7 @@ The bottom task card is a key feature of this edition. All data comes from local
   .tools/                       Android Platform-Tools, ignored by Git
 ```
 
-## Build and verification
+### Build and verification
 
 ```powershell
 dotnet restore DeskSideDisplay.csproj
@@ -190,13 +194,13 @@ dotnet build DeskSideDisplay.csproj -c Release --nologo
 
 After building, start the DLL on Windows. The service listens on 8765, 8766, and 8767. Make sure these ports are free before the first run.
 
-## Documentation and custom widgets
+### Documentation and custom widgets
 
 - [Detailed setup guide (Chinese)](使用说明.md): the first half is a human overview; the second half is an AI-oriented deployment and customization manual.
 - [Custom widget specification](docs/widget-api.md): declarative JSON widgets, templates, layout, data sources, and actions.
 - [Development notes (Chinese)](docs/DEVELOPMENT.md): architecture, implementation notes, and known limitations.
 
-## License and attribution
+### License and attribution
 
 - Upstream: [kdwbll/desk-side-display](https://github.com/kdwbll/desk-side-display)
 - Upstream license: MIT. The copyright notice is in [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md).

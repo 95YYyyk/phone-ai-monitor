@@ -8,6 +8,8 @@
 
 ![旧手机横放在桌面支架上，显示硬件监控和 AI 任务卡](docs/screenshots/demo-device.jpg)
 
+# 给人类看的
+
 ## 这个项目适合做什么
 
 很多人手里有闲置的 Android 手机，但电脑桌面已经没有多余的位置放第二台显示器。这个项目把手机变成一块**随电脑启动、通过 USB 或局域网连接的小屏幕**，不需要安装手机 App，也不需要把数据上传到云端。
@@ -63,11 +65,13 @@ Codex、Antigravity 的任务经常要跑几分钟甚至更久。任务在电脑
 | 旧手机兼容 | 针对 Android 9、Via 7.3.3、WebView 80 等旧内核做了 JS/CSS 降级。 |
 | USB/局域网 | USB 使用 ADB 转发；局域网使用电脑的 8767 端口。 |
 
-## 部署（建议交给 AI）
+## AI请看这
 
-推荐把项目文件夹交给 AI，让 AI 按[使用说明](使用说明.md)第二部分完成环境检查、构建、启动和手机连接。人类只需要确认 UAC、手机 USB 授权和播放器登录。下面保留环境和命令参考，便于 AI 直接执行。
+### 部署（建议交给 AI）
 
-### 环境要求
+推荐把项目文件夹交给 AI，让 AI 按[使用说明](使用说明.md)的「AI请看这」部分完成环境检查、构建、启动和手机连接。人类只需要确认 UAC、手机 USB 授权和播放器登录。下面保留环境和命令参考，便于 AI 直接执行。
+
+#### 环境要求
 
 - Windows 10/11 x64
 - [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
@@ -75,7 +79,7 @@ Codex、Antigravity 的任务经常要跑几分钟甚至更久。任务在电脑
 - USB 数据线（USB 模式）或手机与电脑在同一 Wi-Fi（局域网模式）
 - 可选：Android Platform-Tools（USB 模式需要 `adb.exe`）
 
-### 构建和启动（AI 执行）
+#### 构建和启动（AI 执行）
 
 在项目根目录运行 `一键启动.cmd`。脚本会检查服务是否已运行：已运行则直接打开控制面板，未运行则执行 Release 构建，然后用 `dotnet` 启动。
 
@@ -88,14 +92,14 @@ dotnet bin\Release\net9.0-windows10.0.19041.0\DeskSideDisplay.dll --open-control
 
 启动后 Windows 控制面板地址是 `http://127.0.0.1:8766/`。
 
-### USB 连接手机（AI 执行，手机端由人类授权）
+#### USB 连接手机（AI 执行，手机端由人类授权）
 
 1. 让人类在手机开发者选项中开启「USB 调试」，用支持数据传输的线连接电脑，并在手机弹窗中允许这台电脑。
 2. 程序或 AI 会执行 `adb reverse tcp:8765 tcp:8765`；成功后让人类在手机浏览器打开 `http://127.0.0.1:8765/`。
 3. 让人类把手机横放，轻点画面进入全屏。
 4. 如果电脑没有 `adb.exe`，可将 [Android Platform-Tools](https://developer.android.com/tools/releases/platform-tools) 解压到项目根目录的 `.tools/platform-tools/`，或按控制面板提示下载。
 
-### 局域网连接手机（AI 执行）
+#### 局域网连接手机（AI 执行）
 
 手机与电脑连接同一个 Wi-Fi，打开控制面板侧栏显示的「局域网直连」地址，通常是：
 
@@ -105,7 +109,7 @@ http://电脑局域网IP:8767/
 
 局域网页面不需要 USB 线，也**没有访问令牌**。只建议在可信家庭/办公网络使用，不要把 8767 端口转发到公网。若 Windows 防火墙拦截，可运行 `Enable-Lan-Firewall.ps1`（需要一次 UAC），或在防火墙中放行 `dotnet.exe` 的 TCP 8767 入站。
 
-## 端口与数据位置
+### 端口与数据位置
 
 | 端口 | 用途 |
 | --- | --- |
@@ -115,18 +119,18 @@ http://电脑局域网IP:8767/
 
 源码运行时的数据保存在项目目录的 `.data/`，Android 工具放在 `.tools/`。这两个目录以及 `bin/`、`obj/` 都被 `.gitignore` 排除，迁移电脑时可按需复制 `.data/` 保留个人设置。
 
-## AI 任务监控
+### AI 任务监控
 
 底部任务卡是本修改版的重点功能之一，数据来源全部是本机文件，只读采集，不控制 Codex 或 Antigravity 的进程。
 
-### Codex
+#### Codex
 
 - 读取 `%USERPROFILE%\.codex\sessions/**/rollout-*.jsonl` 中的 `task_started` / `task_complete` 事件。
 - 标题从 `%USERPROFILE%\.codex\session_index.jsonl` 读取；只显示短标题。
 - 服务启动时先读文件尾部；如果尾部没有任务事件，会向前分块回溯最近一次任务状态，避免长对话在服务重启后从任务卡消失。
 - 运行中显示“执行中”，完成后保留约 2 分钟的“已完成”记录。
 
-### Antigravity
+#### Antigravity
 
 - 读取 `%USERPROFILE%\.gemini\antigravity\conversation_summaries.db` 中的对话标题、运行状态、步骤数和更新时间。
 - 需要子任务进度时，再只读打开 `conversations/<对话ID>.db`，解析 `update_steps` 里的任务清单。
@@ -135,7 +139,7 @@ http://电脑局域网IP:8767/
 
 > Antigravity 的本地 SQLite 属于其内部格式，升级后可能改变表结构。读取失败时任务卡会保留上一次快照或降级显示，不会影响副屏主服务。
 
-## 隐私与安全
+### 隐私与安全
 
 - 所有功能默认在本机运行，不包含遥测、账号登录或云端同步。
 - 局域网显示页 `8767` **没有访问令牌**，同一网段的人可能看到当前任务标题、硬件读数或歌词信息；请只在可信网络使用。
@@ -144,7 +148,7 @@ http://电脑局域网IP:8767/
 - Codex 和 Antigravity 的数据采集是只读的；本项目的代码不写这两个应用的文件，也不控制它们的进程。
 - `.data/`、`.tools/`、`发布/` 等本机内容不应提交到 Git。
 
-## 兼容性与限制
+### 兼容性与限制
 
 > **兼容性提醒**：本项目在 Android 9、Via 7.3.3、WebView 80 上验证过，但**不保证适配所有手机和浏览器**。不同手机的屏幕比例、浏览器内核和后台策略可能带来差异。如果遇到其他 bug，可以自行用 AI 修改代码，或联系我：**yykmyykm@163.com**。
 
@@ -155,7 +159,7 @@ http://电脑局域网IP:8767/
 - Antigravity 任务进度依赖其内部数据库，应用升级后可能需要调整解析逻辑。
 - 本修改版不提供预编译 EXE；如需独立发布包，请参考上游项目的发布方式并自行验证许可证和运行时。
 
-## 项目结构
+### 项目结构
 
 ```text
 .
@@ -181,7 +185,7 @@ http://电脑局域网IP:8767/
   .tools/                       Android Platform-Tools，Git 忽略
 ```
 
-## 构建与验证
+### 构建与验证
 
 ```powershell
 dotnet restore DeskSideDisplay.csproj
@@ -190,13 +194,13 @@ dotnet build DeskSideDisplay.csproj -c Release --nologo
 
 构建后在 Windows 上启动 DLL；服务会监听 8765、8766、8767。首次运行请确认端口未被其他程序占用。
 
-## 使用说明与自定义组件
+### 使用说明与自定义组件
 
-- [完整使用说明](使用说明.md)：前半部分是人类导读和 AI 任务看板介绍，后半部分是供 AI 阅读的部署与个性化设置手册。
+- [完整使用说明](使用说明.md)：前半部分是「给人类看的」导读和 AI 任务看板介绍，后半部分是「AI请看这」的部署与个性化设置手册。
 - [自定义组件规范](docs/widget-api.md)：声明式 JSON 组件、模板、布局、数据源和动作。
 - [开发记录](docs/DEVELOPMENT.md)：本修改版的架构、实现要点和已知限制。
 
-## 许可与署名
+### 许可与署名
 
 - 原项目：[kdwbll/desk-side-display](https://github.com/kdwbll/desk-side-display)
 - 原项目许可证：MIT，版权声明见 [LICENSE](LICENSE) 和 [NOTICE.md](NOTICE.md)。
