@@ -21,6 +21,7 @@ Many people have an idle Android phone, but no room on the desk for a second mon
 - **Custom widgets**: Arrange weather, music, notes, images, GIFs, shortcuts, and other cards in landscape.
 - **Lightweight phone actions**: After you grant permission, change tracks, pause, trigger preset shortcuts, create notes, or paste clipboard content from the phone.
 - **USB or Wi-Fi**: USB uses ADB port forwarding for a stable connection; a browser on the same LAN can open the display directly.
+- **ADB power link**: Turn the phone screen off when the PC sleeps, dim it when the PC is idle with no AI task running, and wake it when the PC resumes.
 
 Everything runs locally. There is no cloud account, and hardware readings, clipboard contents, and conversation data are not uploaded.
 
@@ -59,6 +60,7 @@ The Windows control panel lets you change display mode, page order, widget posit
 | Lyrics page | Album art, track title, word-by-word lyrics, playback progress, surrounding lines, and an album-color flow background. |
 | Hardware monitoring | CPU, memory, GPU temperature/power/usage, and real-time network speed; common VPN and virtual adapters are excluded automatically. |
 | AI tasks | Local Codex and Antigravity task status, elapsed time, progress, and completion state. |
+| ADB power link | USB ADB only: follows PC sleep, idle, and resume to adjust the phone screen; LAN mode is unaffected. |
 | Clock / photo frame | Full-screen clock, date, image or GIF frame, and a configurable idle screen. |
 | Custom pages | Up to 10 pages with up to 8 widgets each; pixel sizing, drag, snap, and landscape preview. |
 | Widget actions | Music control, shortcuts, notes, clipboard history, and custom JSON widgets; each requires explicit permission. |
@@ -108,6 +110,15 @@ http://<PC-LAN-IP>:8767/
 ```
 
 No USB cable is needed. The LAN page has **no access token**, so use it only on a trusted home or office network. Do not forward port 8767 to the internet. If Windows Firewall blocks it, run `Enable-Lan-Firewall.ps1` (one UAC prompt), or allow inbound TCP 8767 for `dotnet.exe`.
+
+### ADB power link
+
+This feature works only over USB ADB; the LAN page never controls phone power or brightness.
+
+- On PC suspend, the app sends `input keyevent 223` to turn off the phone screen. Shutdown is intentionally not handled.
+- When keyboard/mouse input has been idle for the configured time and neither Codex nor Antigravity has a running task, the app lowers the current brightness by the configured percentage. It restores the original brightness and auto-brightness mode when the PC becomes active, an AI task starts, or the PC resumes.
+- After resume, the app waits for ADB to return, sends `input keyevent 224`, and runs `wm dismiss-keyguard`. A PIN, pattern, password, or biometric lock cannot be bypassed by ADB.
+- The control panel's "ADB power link" section exposes the switches, idle minutes, dim percentage, and whether media playback should keep the screen bright. Defaults: 5 idle minutes, dim to 25%, keep brightness while media is playing.
 
 ### Ports and data locations
 

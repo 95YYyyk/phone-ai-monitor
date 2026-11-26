@@ -47,6 +47,7 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.MaxRequestBodySize = maxPhotoBytes + 64 * 1024;
 });
 builder.Services.AddSingleton(new PanelSettings(data));
+builder.Services.AddSingleton(new AdbPowerSettings(data));
 builder.Services.AddSingleton(service => new LyricAppearanceSettings(service.GetRequiredService<PanelSettings>().DataPath));
 builder.Services.AddSingleton(service => new LyricsCatalog(service.GetRequiredService<PanelSettings>().DataPath));
 builder.Services.AddSingleton(service => new DisplayPages(service.GetRequiredService<PanelSettings>().DataPath));
@@ -69,6 +70,8 @@ builder.Services.AddHostedService(service => service.GetRequiredService<MusicPla
 builder.Services.AddSingleton(service => new UsbBridge(androidTools, displayPort, packaged,
     service.GetRequiredService<IHostApplicationLifetime>()));
 builder.Services.AddHostedService(service => service.GetRequiredService<UsbBridge>());
+builder.Services.AddSingleton<AdbPowerLink>();
+builder.Services.AddHostedService(service => service.GetRequiredService<AdbPowerLink>());
 
 var app = builder.Build();
 var widgetSources = app.Services.GetRequiredService<WidgetSources>();
@@ -152,7 +155,8 @@ if (packaged)
 }
 
 app.MapGet("/api/state", (HttpContext context, MusicPlayers player, PanelSettings settings, DisplayPages pages,
-    LyricsCatalog catalog, UsbBridge usb, LyricAppearanceSettings appearance, LxMusic lx) =>
+    LyricsCatalog catalog, UsbBridge usb, LyricAppearanceSettings appearance, LxMusic lx,
+    AdbPowerSettings adbPowerSettings, AdbPowerLink adbPowerLink) =>
 {
     var (preferences, wallpaper, displayRevision) = settings.Read();
     var playback = player.Read();
@@ -213,6 +217,8 @@ app.MapGet("/api/state", (HttpContext context, MusicPlayers player, PanelSetting
             url = lanAddress == null ? null : $"http://{lanAddress}:{lanPort}/"
         },
         usb = usb.Status,
+        adbPower = adbPowerSettings.Read(),
+        adbPowerStatus = adbPowerLink.ReadStatus(),
         standalone = packaged,
         state.Status,
         state.CanToggle,
@@ -421,6 +427,10 @@ app.MapPost("/api/settings", async (HttpRequest request, PanelSettings settings,
     return preferences != null && settings.Update(preferences)
         ? Results.NoContent() : Error("无效的显示模式。");
 });
+
+app.MapPost("/api/adb-power", (AdbPowerPreferences preferences, AdbPowerSettings settings) =>
+    preferences.IsValid() && settings.Update(preferences)
+        ? Results.NoContent() : Error("无效的电源联动设置。"));
 
 app.MapPost("/api/music-source", (MusicSourceRequest request, PanelSettings settings) =>
     settings.SetMusicSource(request.Source) ? Results.NoContent() : Error("无效的播放源。"));

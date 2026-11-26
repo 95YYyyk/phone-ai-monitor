@@ -36,6 +36,7 @@
     <aside class="console-rail">
       <nav aria-label="控制面板栏目">
         <a href="#display">手机显示</a>
+        <a href="#adb-power">电源联动</a>
         <a href="#pages">界面与小组件</a>
         <a href="#appearance">歌词外观</a>
         <a href="#music">音乐播放</a>
@@ -82,6 +83,22 @@
           </label>
         </div>
       </div>
+    </section>
+    <section id="adb-power" aria-labelledby="adb-power-heading">
+      <h2 id="adb-power-heading">电源联动</h2>
+      <p class="detail">仅在 USB ADB 连接时生效；局域网模式不会控制手机电源或亮度。</p>
+      <fieldset id="adb-power-fields" class="adb-power-fields" disabled>
+        <label><input type="checkbox" id="adb-sleep"> 电脑睡眠时关闭手机屏幕</label>
+        <label><input type="checkbox" id="adb-dim"> 电脑空闲且没有 AI 任务时降低亮度</label>
+        <label>空闲时间 <input id="adb-idle-minutes" type="number" min="1" max="120" step="1" value="5"> 分钟</label>
+        <label>降低到 <input id="adb-dim-percent" type="number" min="5" max="80" step="5" value="25">%</label>
+        <label><input type="checkbox" id="adb-media"> 播放媒体时保持亮度</label>
+        <label><input type="checkbox" id="adb-wake"> 电脑唤醒后亮屏并收起非安全锁屏</label>
+        <div class="actions">
+          <button id="adb-power-save" type="button">保存电源联动</button>
+        </div>
+      </fieldset>
+      <p id="adb-power-status" class="detail" role="status"></p>
     </section>
     <section id="pages" aria-labelledby="pages-heading">
       <h2 id="pages-heading">界面与小组件</h2>

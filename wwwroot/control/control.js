@@ -35,6 +35,15 @@ const playback = [...document.querySelectorAll('[data-playback]')];
 const adjustments = [...document.querySelectorAll('[data-adjust]')];
 const offsetLabel = document.getElementById('offset');
 const pointButton = document.getElementById('timing-point');
+const adbPowerFields = document.getElementById('adb-power-fields');
+const adbPowerStatus = document.getElementById('adb-power-status');
+const adbPowerSave = document.getElementById('adb-power-save');
+const adbSleep = document.getElementById('adb-sleep');
+const adbDim = document.getElementById('adb-dim');
+const adbWake = document.getElementById('adb-wake');
+const adbMedia = document.getElementById('adb-media');
+const adbIdleMinutes = document.getElementById('adb-idle-minutes');
+const adbDimPercent = document.getElementById('adb-dim-percent');
 const usbMessages = {
   checking: '正在检查 USB 连接',
   ready: 'USB 已连接',
@@ -88,6 +97,9 @@ function render() {
     offsetLabel.textContent = '歌词校准';
     idle.disabled = photo.disabled = lyrics.disabled = musicSource.disabled = true;
     musicSourceStatus.textContent = '';
+    adbPowerFields.disabled = true;
+    adbPowerSave.disabled = true;
+    adbPowerStatus.textContent = '';
     return;
   }
   usb.textContent = usbMessages[status.usb] ?? usbMessages.error;
@@ -97,6 +109,21 @@ function render() {
     ? 'http://' + status.lan.address + ':' + status.lan.port + '/'
     : '未检测到局域网地址');
   copyLanUrl.disabled = !lanLink;
+  const adbPower = status.adbPower ?? {
+    sleepScreenOff: true, dimWhenIdle: true, wakeOnResume: true,
+    idleMinutes: 5, dimPercent: 25, keepBrightnessWhileMedia: true
+  };
+  if (!adbPowerFields.contains(document.activeElement)) {
+    adbSleep.checked = Boolean(adbPower.sleepScreenOff);
+    adbDim.checked = Boolean(adbPower.dimWhenIdle);
+    adbWake.checked = Boolean(adbPower.wakeOnResume);
+    adbMedia.checked = Boolean(adbPower.keepBrightnessWhileMedia);
+    adbIdleMinutes.value = String(adbPower.idleMinutes ?? 5);
+    adbDimPercent.value = String(adbPower.dimPercent ?? 25);
+  }
+  adbPowerFields.disabled = busy;
+  adbPowerSave.disabled = busy;
+  adbPowerStatus.textContent = adbPowerText(status.adbPowerStatus);
   const coverUrl = state.cover ?? '';
   if (playbackCover.getAttribute('src') !== coverUrl) {
     playbackCover.hidden = true;
@@ -255,6 +282,35 @@ function setPreference(change) {
   const { mode, idle } = state.control.preferences;
   return send('/api/settings', JSON.stringify({ mode, idle, ...change }));
 }
+
+function adbPowerText(info) {
+  if (!info) return '';
+  const seconds = Number(info.idleSeconds) || 0;
+  const minutes = Math.floor(seconds / 60);
+  const idle = seconds < 60 ? seconds + ' 秒' : minutes < 60 ? minutes + ' 分钟' : Math.floor(minutes / 60) + ' 小时';
+  const tasks = info.aiRunning ? ' · AI 任务运行中' : '';
+  if (info.state === 'waiting') return '等待 USB ADB 连接';
+  if (info.state === 'disabled') return '空闲降亮度未启用';
+  if (info.state === 'dimmed') return '已降低手机亮度' + (info.brightness != null ? '（' + info.brightness + '）' : '') + ' · 空闲 ' + idle;
+  if (info.state === 'resuming') return '电脑已唤醒，正在恢复手机';
+  if (info.state === 'error') return info.lastAction || '电源联动执行失败';
+  return '监控中 · 空闲 ' + idle + tasks + (info.lastAction ? ' · ' + info.lastAction : '');
+}
+
+adbPowerSave.addEventListener('click', () => {
+  const payload = {
+    sleepScreenOff: adbSleep.checked,
+    dimWhenIdle: adbDim.checked,
+    wakeOnResume: adbWake.checked,
+    idleMinutes: Math.max(1, Math.min(120, Number(adbIdleMinutes.value) || 5)),
+    dimPercent: Math.max(5, Math.min(80, Number(adbDimPercent.value) || 25)),
+    keepBrightnessWhileMedia: adbMedia.checked
+  };
+  act(async () => {
+    await send('/api/adb-power', JSON.stringify(payload));
+    return '电源联动设置已保存。';
+  });
+});
 
 for (const button of modes) {
   button.addEventListener('click', () => act(() => setPreference({ mode: button.dataset.mode })));
