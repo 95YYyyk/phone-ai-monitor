@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseAppHost>false</UseAppHost>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.23" />
+    <PackageReference Include="YamlDotNet" Version="18.1.0" />
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.4" />
+    <Content Update="wwwroot\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(DeskSideSingleFile)' == 'true'">
+    <DefineConstants>$(DefineConstants);DESKSIDE_SINGLE_FILE</DefineConstants>
+    <OutputType>WinExe</OutputType>
+    <UseAppHost>true</UseAppHost>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+    <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(DeskSideSingleFile)' == 'true'">
+    <Content Remove="wwwroot\**\*" />
+    <EmbeddedResource Include="wwwroot\**\*" LogicalName="web/%(RecursiveDir)%(Filename)%(Extension)" />
+    <EmbeddedResource Include="LICENSE" LogicalName="web/licenses/DeskSideDisplay.txt" />
+    <EmbeddedResource Include="licenses\YamlDotNet.txt" LogicalName="web/licenses/YamlDotNet.txt" />
+    <EmbeddedResource Include="$(DeskSideRuntimeNotices)" LogicalName="web/licenses/dotnet.txt" />
+  </ItemGroup>
+</Project>

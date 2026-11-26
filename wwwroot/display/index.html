@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#171923">
+  <title>桌面副屏</title>
+  <link rel="stylesheet" href="/display/display.css?v=netease-lyrics">
+  <link rel="stylesheet" href="/shared/lyric-appearance.css">
+  <link rel="stylesheet" href="/shared/widgets.css">
+  <link rel="stylesheet" href="/shared/widget-v2.css">
+  <link rel="stylesheet" href="/shared/widget-weather.css">
+  <link rel="stylesheet" href="/shared/widget-placement.css">
+  <link rel="stylesheet" href="/display/pages.css">
+  <link rel="stylesheet" href="/display/legacy.css?v=monitor1">
+  <script src="/shared/compat.js" defer></script>
+  <script src="/shared/lyric-appearance.js" defer></script>
+  <script src="/shared/album-flow.js" defer></script>
+  <script src="/shared/widgets.js" defer></script>
+  <script src="/shared/widget-weather.js" defer></script>
+  <script src="/shared/widget-v2.js" defer></script>
+  <script src="/shared/widget-placement.js" defer></script>
+  <script src="/display/pages.js" defer></script>
+  <script src="/display/display.js?v=netease-lyrics" defer></script>
+</head>
+<body>
+  <main aria-label="安卓桌面副屏">
+    <div id="page-backdrop" class="page-backdrop" aria-hidden="true"></div>
+    <div id="page-content">
+    <section class="screen music lyric-view" id="lyrics" aria-label="正在播放" hidden>
+      <div class="now-playing">
+        <div class="cover artwork" aria-hidden="true">
+          <img id="cover" alt="" hidden>
+        </div>
+        <div class="track-details">
+          <div id="track"></div>
+          <div id="artist"></div>
+        </div>
+      </div>
+      <div class="lyric-stack"></div>
+      <div id="static-lyrics" class="lyric-stack static-lyrics" aria-label="静态歌词" tabindex="0" hidden></div>
+    </section>
+    <section class="screen clock" id="clock" aria-label="时钟" hidden>
+      <time id="time"></time>
+      <div id="date"></div>
+    </section>
+    <section class="screen photo artwork" id="photo" aria-label="相框" hidden>
+      <img id="wallpaper" alt="自选图片" hidden>
+    </section>
+    <section class="screen dashboard" id="dashboard" aria-labelledby="dashboard-name" hidden>
+      <h1 id="dashboard-name"></h1>
+      <div id="dashboard-widgets" class="widget-grid"></div>
+      <p id="dashboard-empty" hidden>可在 Windows 控制面板添加组件</p>
+    </section>
+    <div id="widget-stage" class="widget-stage" aria-label="页面组件" hidden></div>
+    </div>
+    <div class="widget-grid" id="page-widgets" aria-label="页面组件" hidden></div>
+    <div id="shortcut-feedback" role="status" hidden></div>
+    <button id="fullscreen" type="button" class="fullscreen-button" aria-label="进入全屏">全屏</button>
+  </main>
+  <div id="codex-toast" class="codex-toast" role="status" hidden></div>
+</body>
+</html>

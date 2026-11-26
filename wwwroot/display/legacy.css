@@ -1,0 +1,98 @@
+/* Fallbacks for Via / Android WebView 80 (Chromium 77-80).
+   Kept separate so modern browsers keep the original layout. */
+.legacy-layout .dashboard {
+  padding: 2.2vh 2.4vw;
+  gap: 1.6vh;
+  font-size: min(1.9vw, 3.2vh);
+}
+
+.legacy-layout .dashboard h1 {
+  font-size: 1.15em;
+  letter-spacing: .01em;
+}
+
+.legacy-layout #dashboard-widgets {
+  grid-auto-rows: minmax(7.5em, 1fr);
+}
+
+/* The glass rim uses an unprefixed mask and a complex :not() list that
+   Chromium 80 drops. A simple border keeps the cards readable. */
+.legacy-layout .widget {
+  border: 1px solid rgba(245, 250, 255, .12);
+  border-radius: 20px;
+  background: rgba(18, 24, 38, .2);
+}
+.legacy-layout .widget::after { display: none; }
+
+/* aspect-ratio is Chrome 88+. Give the round gauges an explicit square. */
+.legacy-layout .widget-gauge {
+  width: 5.45em;
+  height: 5.45em;
+  max-width: 100%;
+}
+.legacy-layout .widget-with-gauge .widget-gauge {
+  width: 6.2em;
+  height: 6.2em;
+}
+.legacy-layout .dashboard.hardware-page .widget-gauge {
+  width: 7.3em;
+  height: 7.3em;
+}
+.legacy-layout .dashboard.hardware-page .widget-with-gauge .widget-gauge {
+  width: 8em;
+  height: 8em;
+}
+
+/* color-mix() is Chrome 111+. The accent color is a good fallback.
+   mask needs the -webkit- prefix on this generation of Chromium. */
+.legacy-layout .widget-gauge::before {
+  background: conic-gradient(var(--widget-accent), var(--widget-accent) var(--widget-progress),
+    rgba(255, 255, 255, .1) var(--widget-progress));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - .42em), #000 calc(100% - .37em));
+  mask: radial-gradient(farthest-side, transparent calc(100% - .42em), #000 calc(100% - .37em));
+}
+.legacy-layout .widget-with-gauge .widget-gauge::after {
+  -webkit-mask: radial-gradient(farthest-side, transparent 91%, #000 94%);
+  mask: radial-gradient(farthest-side, transparent 91%, #000 94%);
+}
+.legacy-layout .widget-gauge[data-metric] .widget-value {
+  font-size: 1.06em;
+}
+.legacy-layout .widget-detail {
+  font-size: .68em;
+}
+
+/* Flex gap is Chrome 84+. The legacy engine gets margins instead. */
+.legacy-layout .network-reading { gap: 0; }
+.legacy-layout .network-reading > * + * { margin-left: 0; }
+.legacy-layout .widget-network { padding: .2em; }
+.legacy-layout .network-stat { padding: .5em .3em; }
+
+/* Lyrics page: emulate container units and aspect-ratio for WebView 80. */
+.legacy-layout .now-playing { width: min(21.6vw, 60vh); }
+.legacy-layout .cover {
+  width: 100%;
+  height: min(21.6vw, 60vh);
+}
+.legacy-layout .cover img, .legacy-layout .photo img {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+.legacy-layout .lyric-stack {
+  height: 100vh;
+  padding-block: 50vh;
+  gap: .5em;
+}
+.legacy-layout .current { font-size: 5.6em; }
+.legacy-layout .current.lyric-note { font-size: 2.2em; }
+.legacy-layout .adjacent { font-size: 2.8em; }
+.legacy-layout .static-lyrics {
+  height: 90vh;
+  padding-block: 3vh;
+  font-size: max(13px, 3.15vw);
+}
+.legacy-layout .lyric-view {
+  background-image: radial-gradient(ellipse at 10% 0%, rgba(164, 137, 191, .2), transparent 76%);
+}

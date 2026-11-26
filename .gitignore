@@ -1,0 +1,13 @@
+/bin/
+/obj/
+/.tools/
+/.data/
+/.archive/
+/artifacts/
+/发布/
+*.log
+*.user
+*.suo
+.vs/
+Thumbs.db
+.DS_Store
