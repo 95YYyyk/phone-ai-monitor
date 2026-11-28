@@ -1,9 +1,7 @@
 using System.Text.Json;
 
 sealed record AdbPowerPreferences(
-    bool SleepScreenOff = true,
     bool DimWhenIdle = true,
-    bool WakeOnResume = true,
     int IdleMinutes = 5,
     int DimPercent = 25,
     bool KeepBrightnessWhileMedia = true)

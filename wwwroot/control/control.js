@@ -38,9 +38,7 @@ const pointButton = document.getElementById('timing-point');
 const adbPowerFields = document.getElementById('adb-power-fields');
 const adbPowerStatus = document.getElementById('adb-power-status');
 const adbPowerSave = document.getElementById('adb-power-save');
-const adbSleep = document.getElementById('adb-sleep');
 const adbDim = document.getElementById('adb-dim');
-const adbWake = document.getElementById('adb-wake');
 const adbMedia = document.getElementById('adb-media');
 const adbIdleMinutes = document.getElementById('adb-idle-minutes');
 const adbDimPercent = document.getElementById('adb-dim-percent');
@@ -110,13 +108,10 @@ function render() {
     : '未检测到局域网地址');
   copyLanUrl.disabled = !lanLink;
   const adbPower = status.adbPower ?? {
-    sleepScreenOff: true, dimWhenIdle: true, wakeOnResume: true,
-    idleMinutes: 5, dimPercent: 25, keepBrightnessWhileMedia: true
+    dimWhenIdle: true, idleMinutes: 5, dimPercent: 25, keepBrightnessWhileMedia: true
   };
   if (!adbPowerFields.contains(document.activeElement)) {
-    adbSleep.checked = Boolean(adbPower.sleepScreenOff);
     adbDim.checked = Boolean(adbPower.dimWhenIdle);
-    adbWake.checked = Boolean(adbPower.wakeOnResume);
     adbMedia.checked = Boolean(adbPower.keepBrightnessWhileMedia);
     adbIdleMinutes.value = String(adbPower.idleMinutes ?? 5);
     adbDimPercent.value = String(adbPower.dimPercent ?? 25);
@@ -292,23 +287,20 @@ function adbPowerText(info) {
   if (info.state === 'waiting') return '等待 USB ADB 连接';
   if (info.state === 'disabled') return '空闲降亮度未启用';
   if (info.state === 'dimmed') return '已降低手机亮度' + (info.brightness != null ? '（' + info.brightness + '）' : '') + ' · 空闲 ' + idle;
-  if (info.state === 'resuming') return '电脑已唤醒，正在恢复手机';
-  if (info.state === 'error') return info.lastAction || '电源联动执行失败';
+  if (info.state === 'error') return info.lastAction || '空闲降亮度检查失败';
   return '监控中 · 空闲 ' + idle + tasks + (info.lastAction ? ' · ' + info.lastAction : '');
 }
 
 adbPowerSave.addEventListener('click', () => {
   const payload = {
-    sleepScreenOff: adbSleep.checked,
     dimWhenIdle: adbDim.checked,
-    wakeOnResume: adbWake.checked,
     idleMinutes: Math.max(1, Math.min(120, Number(adbIdleMinutes.value) || 5)),
     dimPercent: Math.max(5, Math.min(80, Number(adbDimPercent.value) || 25)),
     keepBrightnessWhileMedia: adbMedia.checked
   };
   act(async () => {
     await send('/api/adb-power', JSON.stringify(payload));
-    return '电源联动设置已保存。';
+    return '亮度设置已保存。';
   });
 });
 

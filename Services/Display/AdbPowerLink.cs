@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
-using Microsoft.Win32;
 
 sealed record AdbPowerStatus(
     string State,
@@ -22,7 +21,6 @@ sealed class AdbPowerLink(
     private readonly SemaphoreSlim gate = new(1, 1);
     private readonly object statusGate = new();
     private AdbPowerStatus status = new("waiting", false, null, 0, false, null);
-    private DateTimeOffset resumeGraceUntil;
     private bool dimmed;
     private bool recoveryChecked;
 
@@ -33,7 +31,6 @@ sealed class AdbPowerLink(
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
-        SystemEvents.PowerModeChanged += OnPowerModeChanged;
         try
         {
             using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
@@ -49,84 +46,14 @@ sealed class AdbPowerLink(
                 }
                 catch (Exception error)
                 {
-                    logger.LogDebug(error, "ADB power link tick failed");
-                    SetStatus(state: "error", action: "电源联动检查失败");
+                    logger.LogDebug(error, "ADB idle dimming tick failed");
+                    SetStatus(state: "error", action: "空闲降亮度检查失败");
                 }
             }
         }
         finally
         {
-            SystemEvents.PowerModeChanged -= OnPowerModeChanged;
             await RestoreOnShutdownAsync();
-        }
-    }
-
-    private void OnPowerModeChanged(object? sender, PowerModeChangedEventArgs args)
-    {
-        if (args.Mode == PowerModes.Suspend)
-        {
-            // Keep this short. Windows may suspend the machine as soon as the event returns.
-            try { SuspendAsync().GetAwaiter().GetResult(); }
-            catch (Exception error) { logger.LogDebug(error, "Could not turn off the phone before suspend"); }
-        }
-        else if (args.Mode == PowerModes.Resume)
-        {
-            _ = Task.Run(ResumeAsync);
-        }
-    }
-
-    private async Task SuspendAsync()
-    {
-        var preferences = settings.Read();
-        if (!preferences.SleepScreenOff || !await gate.WaitAsync(TimeSpan.FromSeconds(2)))
-            return;
-        try
-        {
-            if (usb.Status != "ready") return;
-            var result = await usb.ShellAsync(CommandTimeout, CancellationToken.None, "input", "keyevent", "223");
-            SetStatus(action: result.Ok ? "睡眠：已关闭手机屏幕" : "睡眠：手机屏幕命令失败");
-        }
-        finally
-        {
-            gate.Release();
-        }
-    }
-
-    private async Task ResumeAsync()
-    {
-        resumeGraceUntil = DateTimeOffset.UtcNow.AddSeconds(30);
-        SetStatus(state: "resuming", action: "电脑已唤醒，正在恢复手机");
-        try
-        {
-            if (!await WaitForAdbAsync(TimeSpan.FromSeconds(15))) return;
-            var preferences = settings.Read();
-            if (dimmed) await RestoreBrightnessAsync(CancellationToken.None);
-            if (!preferences.WakeOnResume) return;
-
-            for (var attempt = 0; attempt < 5; attempt++)
-            {
-                if (usb.Status != "ready")
-                {
-                    await Task.Delay(1000);
-                    continue;
-                }
-                var wake = await usb.ShellAsync(CommandTimeout, CancellationToken.None, "input", "keyevent", "224");
-                if (!wake.Ok)
-                {
-                    await Task.Delay(1000);
-                    continue;
-                }
-                var dismiss = await usb.ShellAsync(CommandTimeout, CancellationToken.None, "wm", "dismiss-keyguard");
-                if (!dismiss.Ok)
-                    await usb.ShellAsync(CommandTimeout, CancellationToken.None, "input", "keyevent", "82");
-                SetStatus(action: "唤醒：已亮屏并收起非安全锁屏");
-                return;
-            }
-            SetStatus(action: "唤醒：手机屏幕命令失败");
-        }
-        catch (Exception error)
-        {
-            logger.LogDebug(error, "Could not wake the phone after resume");
         }
     }
 
@@ -151,13 +78,6 @@ sealed class AdbPowerLink(
         {
             if (dimmed) await RestoreBrightnessAsync(token);
             SetStatus(state: "disabled", idleSeconds: idleSeconds, aiRunning: aiRunning);
-            return;
-        }
-
-        if (DateTimeOffset.UtcNow < resumeGraceUntil)
-        {
-            if (dimmed) await RestoreBrightnessAsync(token);
-            SetStatus(state: "active", idleSeconds: idleSeconds, aiRunning: aiRunning);
             return;
         }
 
@@ -274,17 +194,6 @@ sealed class AdbPowerLink(
     {
         var playback = music.Read();
         return playback.Apple.Playing || playback.Netease.Playing || playback.Lx.Playing;
-    }
-
-    private async Task<bool> WaitForAdbAsync(TimeSpan timeout)
-    {
-        var deadline = DateTimeOffset.UtcNow + timeout;
-        while (DateTimeOffset.UtcNow < deadline)
-        {
-            if (usb.Status == "ready") return true;
-            await Task.Delay(500);
-        }
-        return usb.Status == "ready";
     }
 
     private void SetStatus(string? state = null, bool? dimmed = null, int? brightness = null,
